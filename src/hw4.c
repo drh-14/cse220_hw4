@@ -414,7 +414,7 @@ int main(){
             continue;
         }
         char *tokens = strtok(buffer, " ");
-        if(str(tokens) != 21){
+        if(strlen(tokens) != 21){
             send_error(conn_fd_2, INVALID_INITIALIZE_PACKET);
         }
         tokens++;
