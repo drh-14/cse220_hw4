@@ -7,6 +7,8 @@
 #include <sys/socket.h>
 
 #define PORT 8000
+#define PORT1 2201
+#define PORT2 2202
 #define BUFFER_SIZE 1024
 
 #define EXPECTED_BEGIN_PACKET 100
@@ -225,7 +227,7 @@ int main(){
     address.sin_family = AF_INET;
     address.sin_port = htons(PORT);
     address.sin_addr.s_addr = INADDR_ANY;
-    if(bind(listen_fd, (struct sockaddr*)&address, addressLength) < 0){
+    if(bind(listen_fd, (struct sockaddr*)&address, &addressLength) < 0){
         perror("[Server] bind() failed.");
         exit(EXIT_FAILURE);
     }
@@ -240,12 +242,12 @@ int main(){
     
     // Accept incoming connections
 
-    if(conn_fd_1 = accept(listen_fd, (struct sockaddr*)&address, addressLength) == -1){
+    if(conn_fd_1 = accept(listen_fd, (struct sockaddr*)&address, &addressLength) == -1){
         perror("[Server] accept() failed.");
         exit(EXIT_FAILURE);
     }
     
-    if(conn_fd_2 = accept(listen_fd, (struct sockaddr*)&address, addressLength) == -1){
+    if(conn_fd_2 = accept(listen_fd, (struct sockaddr*)&address, &addressLength) == -1){
         perror("[Server] accept() failed.");
         exit(EXIT_FAILURE);
     }
