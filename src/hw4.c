@@ -215,6 +215,7 @@ int main(){
     
     int listen_fd, conn_fd_1, conn_fd_2;
     struct sockaddr_in address;
+    int addrlen = sizeof(address);
     char buffer[BUFFER_SIZE] = {0};
     if(listen_fd = socket(AF_INET, SOCK_STREAM, 0) == 0){
         perror("Socket failure.");
@@ -231,7 +232,7 @@ int main(){
     }
 
     // Listen for connections
-    if(listen(listen_fd, 2) == -1){
+    if(listen(listen_fd, 3) == -1){
         perror("[Server] listen() failed.");
         exit(EXIT_FAILURE);
     }
@@ -240,12 +241,12 @@ int main(){
     
     // Accept incoming connections
 
-    if(conn_fd_1 = accept(listen_fd, (struct sockaddr*)&address, sizeof(address)) == -1){
+    if(conn_fd_1 = accept(listen_fd, (struct sockaddr*)&address, (socklen_t *)&addrlen == -1)){
         perror("[Server] accept() failed.");
         exit(EXIT_FAILURE);
     }
     
-    if(conn_fd_2 = accept(listen_fd, (struct sockaddr*)&address, sizeof(address)) == -1){
+    if(conn_fd_2 = accept(listen_fd, (struct sockaddr*)&address, &addrlen) == -1){
         perror("[Server] accept() failed.");
         exit(EXIT_FAILURE);
     }
