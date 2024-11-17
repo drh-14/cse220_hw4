@@ -22,6 +22,13 @@
 #define CELL_NOT_IN_BOARD 400
 #define CELL_ALREADY_GUESSED 401
 
+
+typedef struct{
+    int height;
+    int width;
+    int **cells;
+}Board;
+
  typedef struct{
   int coordinates[4][2];
 }Piece;
@@ -35,12 +42,6 @@ typedef struct {
     Piece piece5;
     int remainingShips;
 } Player;
-
-typedef struct{
-    int height;
-    int width;
-    int **cells;
-}Board;
 
 void delete_board(Board board){
     for(int i = 0; i < board.height; i++){
@@ -66,11 +67,11 @@ bool piece_in_bounds(Board board, Piece piece){
     return true;
 }
 
-bool ship_overlaps(Board *board, Piece piece){
+bool ship_overlaps(Board board, Piece piece){
     int row, col;
     for(int i = 0; i < 4; i++){
         row, col = piece.coordinates[i][0], piece.coordinates[i][1];
-        if(board -> cells[row][col] != 0){
+        if(board.cells[row][col] != 0){
             return true;
         }
     }
@@ -178,7 +179,7 @@ void remove_ship(Player player, Piece piece){
     for(int i = 0; i < 4; i++){
         int row = piece.coordinates[i][0];
         int col = piece.coordinates[i][1];
-        player.board[row][col] = 0;
+        player.board.cells[row][col] = 0;
     }
     player.remainingShips--;
 }
@@ -377,7 +378,7 @@ int main(){
             for(int i = 0; i < 4; i++){
                 int row = piece.coordinates[i][0];
                 int col = piece.coordinates[i][1];
-                player1.board -> cells[row][col] = 1;
+                player1.board.cells[row][col] = 1;
             }
             pieces[i] = piece;
             invalidPieces = false;
@@ -446,7 +447,7 @@ int main(){
             for(int i = 0; i < 4; i++){
                 int row = piece.coordinates[i][0];
                 int col = piece.coordinates[i][1];
-                player2.board -> cells[row][col] = 1;
+                player2.board.cells[row][col] = 1;
             }
             pieces[i] = piece;
             invalidPieces = false;
@@ -470,7 +471,7 @@ int main(){
     // Player 1
 
     while(1){
-        
+
     }
 
     
