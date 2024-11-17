@@ -216,7 +216,6 @@ int main(){
     int listen_fd, conn_fd_1, conn_fd_2;
     struct sockaddr_in address;
     char buffer[BUFFER_SIZE] = {0};
-    int addressLength = sizeof(address);
     if(listen_fd = socket(AF_INET, SOCK_STREAM, 0) == 0){
         perror("Socket failure.");
         exit(EXIT_FAILURE);
@@ -226,7 +225,7 @@ int main(){
     address.sin_family = AF_INET;
     address.sin_port = htons(PORT);
     address.sin_addr.s_addr = INADDR_ANY;
-    if(bind(listen_fd, (struct sockaddr*)&address, &addressLength) < 0){
+    if(bind(listen_fd, (struct sockaddr*)&address, sizeof(address)) < 0){
         perror("[Server] bind() failed.");
         exit(EXIT_FAILURE);
     }
@@ -241,12 +240,12 @@ int main(){
     
     // Accept incoming connections
 
-    if(conn_fd_1 = accept(listen_fd, (struct sockaddr*)&address, &addressLength) == -1){
+    if(conn_fd_1 = accept(listen_fd, (struct sockaddr*)&address, sizeof(address)) == -1){
         perror("[Server] accept() failed.");
         exit(EXIT_FAILURE);
     }
     
-    if(conn_fd_2 = accept(listen_fd, (struct sockaddr*)&address, &addressLength) == -1){
+    if(conn_fd_2 = accept(listen_fd, (struct sockaddr*)&address, sizeof(address)) == -1){
         perror("[Server] accept() failed.");
         exit(EXIT_FAILURE);
     }
