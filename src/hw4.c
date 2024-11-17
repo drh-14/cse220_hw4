@@ -81,7 +81,6 @@ bool ship_overlaps(Board board, Piece piece){
 }
 
 void build_piece(Piece piece, int pieceRotation, int pieceType, int row, int col){
-    int row, col;
     if(pieceType == 2){
         if(pieceRotation == 1 || pieceRotation == 3){
             piece.coordinates[1][0], piece.coordinates[2][0], piece.coordinates[3][0] = row + 1, row + 2, row + 3;
