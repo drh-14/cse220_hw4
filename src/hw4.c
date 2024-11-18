@@ -342,14 +342,19 @@ int main(){
             memset(buffer, 0, BUFFER_SIZE);
             close(sock_fd_1);
             close(sock_fd_2);
+            close(conn_fd_1);
+            close(conn_fd_2);
             return 0;
         }
         if(buffer[0] != 'B'){
             send_error(conn_fd_2, EXPECTED_BEGIN_PACKET);
+            memset(buffer, 0, BUFFER_SIZE);
             continue;
         }
         if(numBytes != 1){
             send_error(conn_fd_2, INVALID_BEGIN_PACKET);
+            memset(buffer, 0, BUFFER_SIZE);
+            continue;
         }
         break;
    }
@@ -372,7 +377,18 @@ int main(){
             continue;
         }
         if(buffer[0] == 'F'){
-            // Handle forfeit logic
+            char message1[15];
+            snprintf(message1, sizeof(message1), "H %d", 0);
+            send(conn_fd_1, message1, strlen(message1), 0);
+            char message2[15];
+            snprintf(message2, sizeof(message2), "H %d", 1);
+            send(conn_fd_2, message2, strlen(message2), 0);
+            memset(buffer, 0, BUFFER_SIZE);
+            close(sock_fd_1);
+            close(sock_fd_2);
+            close(conn_fd_1);
+            close(conn_fd_2);
+            return 0;
         }
         if(buffer[0] != 'I'){
             send_error(conn_fd_1, EXPECTED_INITALIZE_PACKET);
