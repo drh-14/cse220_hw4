@@ -246,15 +246,15 @@ int main(){
         exit(EXIT_FAILURE);
     }
 
+     if(listen(sock_fd_2, 3) == -1){
+        perror("Failed to listen.");
+        exit(EXIT_FAILURE);
+    }
+
      printf("[Server] running on port %d\n", PORT1);
     conn_fd_1 = accept(sock_fd_1, (struct sockaddr*)&address_1, (socklen_t *)&address_len_1);
     if(conn_fd_1 == -1){
         perror("Failed to accept.");
-        exit(EXIT_FAILURE);
-    }
-
-    if(listen(sock_fd_2, 3) == -1){
-        perror("Failed to listen.");
         exit(EXIT_FAILURE);
     }
 
