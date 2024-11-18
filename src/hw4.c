@@ -209,18 +209,11 @@ int shoot(Player player, int row, int col){
 }
 
 int main(){
-
-    //Server Setup
-    
-    // Socket for Port 1
- 
     int sock_fd_1, conn_fd_1;
-    struct sockaddr_in address_1, client_address_1;
+    struct sockaddr_in address_1;
      int sock_fd_2, conn_fd_2;
-    struct sockaddr_in address_2, client_address_2;
+    struct sockaddr_in address_2;
     int address_len_2 = sizeof(address_2);
-    int client_address_len_2 = sizeof(client_address_2);
-    int client_address_len_1 = sizeof(client_address_1);
     int address_len_1 = sizeof(address_1);
     char buffer[BUFFER_SIZE] = {0};
     sock_fd_1 = socket(AF_INET, SOCK_STREAM, 0);
@@ -253,27 +246,24 @@ int main(){
         exit(EXIT_FAILURE);
     }
 
-    if(listen(sock_fd_2, 3) == -1){
-        perror("Failed to listen.");
-        exit(EXIT_FAILURE);
-    }
-    printf("[Server] running on port %d\n", PORT1);
-    conn_fd_1 = accept(sock_fd_1, (struct sockaddr*)&client_address_1, (socklen_t *)&client_address_len_1);
+     printf("[Server] running on port %d\n", PORT1);
+    conn_fd_1 = accept(sock_fd_1, (struct sockaddr*)&address_1, (socklen_t *)&address_len_1);
     if(conn_fd_1 == -1){
         perror("Failed to accept.");
         exit(EXIT_FAILURE);
     }
 
+    if(listen(sock_fd_2, 3) == -1){
+        perror("Failed to listen.");
+        exit(EXIT_FAILURE);
+    }
+
     printf("[Server] running on port %d\n", PORT2);
-    conn_fd_2 = accept(sock_fd_2, (struct sockaddr*)&client_address_2, (socklen_t *)&client_address_len_2);
+    conn_fd_2 = accept(sock_fd_2, (struct sockaddr*)&address_2, (socklen_t *)&address_len_2);
     if(conn_fd_2 == -1){
         perror("Failed to accept.");
         exit(EXIT_FAILURE);
     }
-
-    // Begin packets
-
-    // Player 1
 
     int height, width;
     while(1){
