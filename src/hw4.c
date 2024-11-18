@@ -292,7 +292,7 @@ int main(){
             continue;
         }
         int i = 0;
-        while(buffer){
+        while(token){
             if(i == 1){
                 width = (int)*token;
             }
