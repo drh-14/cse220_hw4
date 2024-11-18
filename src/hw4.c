@@ -281,6 +281,7 @@ int main(){
             memset(buffer, 0, BUFFER_SIZE);
             close(sock_fd_1);
             close(sock_fd_2);
+            return 0;
         }
         char *tokens = strtok(buffer, " ");
         if(*tokens != 'B'){
