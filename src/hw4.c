@@ -335,6 +335,8 @@ int main(){
             continue;
         }
         if(buffer[0] == 'F'){
+            memset(buffer, 0, BUFFER_SIZE);
+            read(conn_fd_1, buffer, BUFFER_SIZE);
             char message1[15];
             snprintf(message1, sizeof(message1), "H %d\n", 1);
             send(conn_fd_1, message1, strlen(message1), 0);
