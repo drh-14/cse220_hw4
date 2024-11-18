@@ -279,7 +279,6 @@ int main(){
     while(1){
     int numBytes = read(conn_fd_1, buffer, BUFFER_SIZE);
         if (numBytes <= 0) {
-            send(conn_fd_1, "A", 2, 0);
             continue;
         }
         if(buffer[0] == 'F'){
@@ -325,7 +324,6 @@ int main(){
    while(1){ 
    int numBytes = read(conn_fd_2, buffer, BUFFER_SIZE);
         if (numBytes <= 0) {
-            send(conn_fd_2, "A", 2, 0);
             continue;
         }
         if(buffer[0] == 'F'){
