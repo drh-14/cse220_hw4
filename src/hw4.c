@@ -244,7 +244,6 @@ int main(){
     int sock_fd_2, conn_fd_2;
     struct sockaddr_in address_2;
     int address_len_2 = sizeof(address_2);
-    char buffer[BUFFER_SIZE] = {0};
     if(sock_fd_1 = socket(AF_INET, SOCK_STREAM, 0) == 0){
         perror("Socket failure.");
     }
