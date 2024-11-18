@@ -286,18 +286,22 @@ int main(){
         char *tokens = strtok(buffer, " ");
         if(*tokens != 'B'){
             send_error(conn_fd_1, EXPECTED_BEGIN_PACKET);
+            memset(buffer, 0, BUFFER_SIZE);
             continue;
         }
         if(strlen(tokens) != 3){
             send_error(conn_fd_1, INVALID_BEGIN_PACKET);
+            memset(buffer, 0, BUFFER_SIZE);
             continue;
         }
-        width = (int)*(tokens + 1);
-        height = (int)*(tokens + 2);
+        width = (int)tokens[1];
+        height = (int)tokens[2];
         if(width < 10 || height < 10){
             send_error(conn_fd_1, INVALID_BEGIN_PACKET);
+            memset(buffer, 0,  BUFFER_SIZE);
             continue;
         }
+        send(conn_fd_1, "A", 1, 0);
         break;
     }
     
