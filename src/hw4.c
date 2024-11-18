@@ -215,31 +215,61 @@ int main(){
     // Socket for Port 1
  
     int sock_fd_1, conn_fd_1;
-    struct sockaddr_in address_1;
+    struct sockaddr_in address_1, client_address_1;
+    int client_address_len_1 = sizeof(client_address_1);
     int address_len_1 = sizeof(address_1);
     char buffer[BUFFER_SIZE] = {0};
     sock_fd_1 = socket(AF_INET, SOCK_STREAM, 0);
+    if(sock_fd_1 == -1){
+        perror("Socket failed.");
+        exit(EXIT_FAILURE);
+    }
     address_1.sin_family = AF_INET;
     address_1.sin_port = htons(PORT1);
     address_1.sin_addr.s_addr = INADDR_ANY;
-    bind(sock_fd_1, (struct sockaddr*)&address_1, sizeof(address_1));
-    listen(sock_fd_1, 3);
+    if(bind(sock_fd_1, (struct sockaddr*)&address_1, sizeof(address_1)) == -1){
+        perror("Fail in bind.");
+        exit(EXIT_FAILURE);
+    }
+    if(listen(sock_fd_1, 3) == -1){
+        perror("Failed to listen.");
+        exit(EXIT_FAILURE);
+    }
     printf("[Server] running on port %d\n", PORT1);
-    conn_fd_1 = accept(sock_fd_1, (struct sockaddr*)&address_1, (socklen_t *)&address_len_1);
+    conn_fd_1 = accept(sock_fd_1, (struct sockaddr*)&client_address_1, (socklen_t *)&client_address_len_1);
+    if(conn_fd_1 == -1){
+        perror("Failed to accept.");
+        exit(EXIT_FAILURE);
+    }
 
     // Socket for Port 2
 
     int sock_fd_2, conn_fd_2;
-    struct sockaddr_in address_2;
+    struct sockaddr_in address_2, client_address_2;
     int address_len_2 = sizeof(address_2);
+    int client_address_len_2 = sizeof(client_address_2);
     sock_fd_2 = socket(AF_INET, SOCK_STREAM, 0);
+    if(sock_fd_2 == -1){
+        perror("Socket failed.");
+        exit(EXIT_FAILURE);
+    }
     address_2.sin_family = AF_INET;
     address_2.sin_port = htons(PORT2);
     address_2.sin_addr.s_addr = INADDR_ANY;
-    bind(sock_fd_2, (struct sockaddr*)&address_2, sizeof(address_2));
-    listen(sock_fd_2, 3);
+    if(bind(sock_fd_2, (struct sockaddr*)&address_2, sizeof(address_2)) == -1){
+        perror("Failed to bind.");
+        exit(EXIT_FAILURE);
+    }
+    if(listen(sock_fd_2, 3) == -1){
+        perror("Failed to listen.");
+        exit(EXIT_FAILURE);
+    }
     printf("[Server] running on port %d\n", PORT2);
-    conn_fd_2 = accept(sock_fd_2, (struct sockaddr*)&address_2, (socklen_t *)&address_len_2);
+    conn_fd_2 = accept(sock_fd_2, (struct sockaddr*)&client_address_2, (socklen_t *)&client_address_len_2);
+    if(conn_fd_2 == -1){
+        perror("Failed to accept.");
+        exit(EXIT_FAILURE);
+    }
 
     // Begin packets
 
@@ -253,7 +283,6 @@ int main(){
             continue;
         }
         if(buffer[0] == 'F'){
-            // Handle forfeit logic
             char message1[5];
             snprintf(message1, sizeof(message1), "H %d\n", 0);
             send(sock_fd_1, message1, sizeof(message1), 0);
@@ -262,7 +291,7 @@ int main(){
             send(sock_fd_2, message2, sizeof(message2), 0);
             memset(buffer, 0, BUFFER_SIZE);
             close(sock_fd_1);
-            close(sock_fd_1);
+            close(sock_fd_2);
         }
         char *tokens = strtok(buffer, " ");
         if(*tokens != 'B'){
