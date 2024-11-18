@@ -322,7 +322,16 @@ int main(){
             continue;
         }
         if(buffer[0] == 'F'){
-            // Handle forfeit logic
+            char message1[15];
+            snprintf(message1, sizeof(message1), "H %d\n", 1);
+            send(conn_fd_1, message1, strlen(message1), 0);
+            char message2[15];
+            snprintf(message2, sizeof(message2), "H %d\n", 0);
+            send(conn_fd_2, message2, strlen(message2), 0);
+            memset(buffer, 0, BUFFER_SIZE);
+            close(sock_fd_1);
+            close(sock_fd_2);
+            return 0;
         }
         if(buffer[0] != 'B'){
             send_error(conn_fd_2, EXPECTED_BEGIN_PACKET);
@@ -341,7 +350,6 @@ int main(){
         player2.board.cells[i] = malloc(sizeof(int) * width);
     }
     memset(buffer, 0, BUFFER_SIZE);
-
 
     // Initialize Packets
 
