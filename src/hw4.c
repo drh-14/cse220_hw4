@@ -273,11 +273,12 @@ int main(){
         }
         if(buffer[0] == 'F'){
             memset(buffer, 0, BUFFER_SIZE);
-            read(conn_fd_2, buffer, BUFFER_SIZE);
             char message1[15];
             snprintf(message1, sizeof(message1), "H %d", 0);
             send(conn_fd_1, message1, strlen(message1), 0);
             char message2[15];
+            read(conn_fd_2, buffer, BUFFER_SIZE);
+            memset(buffer, 0, BUFFER_SIZE);
             snprintf(message2, sizeof(message2), "H %d", 1);
             send(conn_fd_2, message2, strlen(message2), 0);
             close(conn_fd_1);
