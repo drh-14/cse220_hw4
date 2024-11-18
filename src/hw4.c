@@ -272,11 +272,11 @@ int main(){
             continue;
         }
         if(buffer[0] == 'F'){
-            char message1[5];
-            snprintf(message1, sizeof(message1), "H %d\n", 0);
+            char message1[4];
+            snprintf(message1, sizeof(message1), "H %d", 0);
             send(conn_fd_1, message1, sizeof(message1), 0);
-            char message2[5];
-            snprintf(message2, sizeof(message2), "H %d\n", 1);
+            char message2[4];
+            snprintf(message2, sizeof(message2), "H %d", 1);
             send(conn_fd_2, message2, sizeof(message2), 0);
             memset(buffer, 0, BUFFER_SIZE);
             close(sock_fd_1);
