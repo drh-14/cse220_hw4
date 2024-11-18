@@ -52,9 +52,9 @@ void delete_board(Board board){
 }
 
 int send_error(int target_fd, int ERROR_CODE){
-    char message[20];
-    snprintf(message, sizeof(message), "E %d\n", ERROR_CODE);
-    return send(target_fd, message, strlen(message), 0);
+    char errorMessage[20];
+    snprintf(errorMessage, sizeof(errorMessage), "E %d", ERROR_CODE);
+    return send(target_fd, errorMessage, strlen(errorMessage), 0);
 }
 
 bool piece_in_bounds(Board board, Piece piece){
@@ -273,10 +273,10 @@ int main(){
         }
         if(buffer[0] == 'F'){
             char message1[15];
-            snprintf(message1, sizeof(message1), "H %d\n", 0);
+            snprintf(message1, sizeof(message1), "H %d", 0);
             send(conn_fd_1, message1, strlen(message1), 0);
             char message2[15];
-            snprintf(message2, sizeof(message2), "H %d\n", 1);
+            snprintf(message2, sizeof(message2), "H %d", 1);
             send(conn_fd_2, message2, strlen(message2), 0);
             memset(buffer, 0, BUFFER_SIZE);
             close(sock_fd_1);
