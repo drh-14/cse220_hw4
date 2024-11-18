@@ -241,7 +241,7 @@ int main(){
     
     // Accept incoming connections
 
-    if(conn_fd_1 = accept(listen_fd, (struct sockaddr*)&address, (socklen_t *)&addrlen == -1)){
+    if(conn_fd_1 = accept(listen_fd, (struct sockaddr*)&address, (socklen_t *)&addrlen) == -1){
         perror("[Server] accept() failed.");
         exit(EXIT_FAILURE);
     }
