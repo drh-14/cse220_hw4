@@ -279,10 +279,10 @@ int main(){
             snprintf(message2, sizeof(message2), "H %d", 1);
             send(conn_fd_2, message2, strlen(message2), 0);
             memset(buffer, 0, BUFFER_SIZE);
-            close(sock_fd_1);
-            close(sock_fd_2);
             close(conn_fd_1);
             close(conn_fd_2);
+            close(sock_fd_1);
+            close(sock_fd_2);
             return 0;
         }
         char *token = strtok(buffer, " ");
