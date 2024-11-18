@@ -487,7 +487,7 @@ int main(){
                 send_error(conn_fd_2, SHAPE_OUT_OF_RANGE);
                 break;
             }
-            if(!(1 <= pieceRotation && pieceRotation <= 7)){
+            if(!(1 <= pieceRotation && pieceRotation <= 4)){
                 send_error(conn_fd_2, ROTATION_OUT_OF_RANGE);
                 break;
             }
@@ -527,15 +527,14 @@ int main(){
 
     // Player 1
 
-    while(1){
-
-    }
 
     
   // Free allocated memory and close server
 
   delete_board(player1.board);
   delete_board(player2.board);
+  close(conn_fd_1);
+  close(conn_fd_2);
   close(sock_fd_1);
   close(sock_fd_2);
   printf("%s", "[Server] shutting down.");
