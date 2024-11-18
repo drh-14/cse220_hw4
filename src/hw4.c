@@ -11,7 +11,7 @@
 #define BUFFER_SIZE 1024
 
 #define EXPECTED_BEGIN_PACKET 100
-#define EXPECTED_INITALIZE_PACKET 101
+#define EXPECTED_INITIALIZE_PACKET 101
 #define EXPECTED_SHOOT_QUERY_FORFEIT 102
 #define INVALID_BEGIN_PACKET 200
 #define INVALID_INITIALIZE_PACKET 201
@@ -367,7 +367,176 @@ int main(){
         player2.board.cells[i] = malloc(sizeof(int) * width);
     }
     memset(buffer, 0, BUFFER_SIZE);
-    
+
+    // Initialization
+
+    while(1){
+        int numBytes = read(conn_fd_1, buffer, BUFFER_SIZE);
+        if(numBytes <= 0){
+            continue;
+        }
+        if(buffer[0] == 'F'){
+            char message1[15];
+            snprintf(message1, sizeof(message1), "H %d", 0);
+            send(conn_fd_1, message1, strlen(message1), 0);
+            char message2[15];
+            snprintf(message2, sizeof(message2), "H %d", 1);
+            send(conn_fd_2, message2, strlen(message2), 0);
+            memset(buffer, 0, BUFFER_SIZE);
+            close(conn_fd_1);
+            close(conn_fd_2);
+            close(sock_fd_1);
+            close(sock_fd_2);
+            return 0;
+        }
+        if(buffer[0] != 'I'){
+            send_error(conn_fd_1, EXPECTED_INITIALIZE_PACKET);
+            memset(buffer, 0, BUFFER_SIZE);
+            continue;
+        }
+        if(numBytes != 41){
+            send_error(conn_fd_1, INVALID_INITIALIZE_PACKET);
+            memset(buffer, 0, BUFFER_SIZE);
+            continue;
+        }
+        bool invalidPieces = true;
+        int values[20];
+        char *token = strtok(buffer, " ");
+        token++;
+        int i = 0;
+        while(token){
+            values[i] = (int)(*token);
+            i++;
+            token++;
+        }
+        Piece pieces[5];
+        for(int i = 0; i < 5; i++){
+            int pieceType = values[5 * i];
+            int pieceRotation = values[5 * i + 1];
+            int row = values[5 * i + 2];
+            int col = values[5 * i + 3];
+            if(!(1 <= pieceType && pieceType <= 7)){
+                send_error(conn_fd_1, SHAPE_OUT_OF_RANGE);
+                break;
+            if(!(1 <= pieceRotation && pieceRotation <= 4)){
+                send_error(conn_fd_1, ROTATION_OUT_OF_RANGE);
+                break;
+            }
+            Piece piece;
+            build_piece(piece, pieceRotation, pieceType, row, col);
+            if(!piece_in_bounds(player1.board, piece)){
+                send_error(conn_fd_1, INVALID_SHIP);
+                break;
+            }
+            if(ship_overlaps(player1.board, piece)){
+                send_error(conn_fd_1, OVERLAPPING_SHIPS);
+                break;
+            }
+            for(int i = 0; i < 4; i++){
+                player1.board.cells[piece.coordinates[i][0]][piece.coordinates[i][1]] = 1;
+            }
+            pieces[i] = piece;
+            invalidPieces = false;
+            }
+        }
+        if(invalidPieces){
+            continue;
+        }
+        else{
+            player1.piece1 = pieces[0];
+            player1.piece2 = pieces[1];
+            player1.piece3 = pieces[2];
+            player1.piece4 = pieces[3];
+            player1.piece5 = pieces[4];
+            send(conn_fd_1, "A", 1, 0);
+            break;
+        }
+    }
+
+     while(1){
+        int numBytes = read(conn_fd_2, buffer, BUFFER_SIZE);
+        if(numBytes <= 0){
+            continue;
+        }
+        if(buffer[0] == 'F'){
+            char message1[15];
+            snprintf(message1, sizeof(message1), "H %d", 1);
+            send(conn_fd_1, message1, strlen(message1), 0);
+            char message2[15];
+            snprintf(message2, sizeof(message2), "H %d", 0);
+            send(conn_fd_2, message2, strlen(message2), 0);
+            memset(buffer, 0, BUFFER_SIZE);
+            close(conn_fd_1);
+            close(conn_fd_2);
+            close(sock_fd_1);
+            close(sock_fd_2);
+            return 0;
+        }
+        if(buffer[0] != 'I'){
+            send_error(conn_fd_2, EXPECTED_INITIALIZE_PACKET);
+            memset(buffer, 0, BUFFER_SIZE);
+            continue;
+        }
+        if(numBytes != 41){
+            send_error(conn_fd_2, INVALID_INITIALIZE_PACKET);
+            memset(buffer, 0, BUFFER_SIZE);
+            continue;
+        }
+        bool invalidPieces = true;
+        int values[20];
+        char *token = strtok(buffer, " ");
+        token++;
+        int i = 0;
+        while(token){
+            values[i] = (int)(*token);
+            i++;
+            token++;
+        }
+        Piece pieces[5];
+        for(int i = 0; i < 5; i++){
+            int pieceType = values[5 * i];
+            int pieceRotation = values[5 * i + 1];
+            int row = values[5 * i + 2];
+            int col = values[5 * i + 3];
+            if(!(1 <= pieceType && pieceType <= 7)){
+                send_error(conn_fd_2, SHAPE_OUT_OF_RANGE);
+                break;
+            if(!(1 <= pieceRotation && pieceRotation <= 4)){
+                send_error(conn_fd_2, ROTATION_OUT_OF_RANGE);
+                break;
+            }
+            Piece piece;
+            build_piece(piece, pieceRotation, pieceType, row, col);
+            if(!piece_in_bounds(player2.board, piece)){
+                send_error(conn_fd_2, INVALID_SHIP);
+                break;
+            }
+            if(ship_overlaps(player2.board, piece)){
+                send_error(conn_fd_2, OVERLAPPING_SHIPS);
+                break;
+            }
+            for(int i = 0; i < 4; i++){
+                player2.board.cells[piece.coordinates[i][0]][piece.coordinates[i][1]] = 1;
+            }
+            pieces[i] = piece;
+            invalidPieces = false;
+            }
+        }
+        if(invalidPieces){
+            continue;
+        }
+        else{
+            player2.piece1 = pieces[0];
+            player2.piece2 = pieces[1];
+            player2.piece3 = pieces[2];
+            player2.piece4 = pieces[3];
+            player2.piece5 = pieces[4];
+            send(conn_fd_2, "A", 1, 0);
+            break;
+        }
+    }
+
+
   // Free allocated memory and close server
 
   delete_board(player1.board);
