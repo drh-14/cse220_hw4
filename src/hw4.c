@@ -218,7 +218,8 @@ int main(){
     struct sockaddr_in address_1;
     int address_len_1 = sizeof(address_1);
     char buffer[BUFFER_SIZE] = {0};
-    if(sock_fd_1 = socket(AF_INET, SOCK_STREAM, 0) == 0){
+    sock_fd_1 = socket(AF_INET, SOCK_STREAM, 0);
+    if(sock_fd_1 == -1){
         perror("Socket failure.");
     }
     exit(EXIT_FAILURE);
@@ -234,7 +235,8 @@ int main(){
         exit(EXIT_FAILURE);
     }
     printf("[Server] running on port %d\n", PORT1);
-    if(conn_fd_1 = accept(sock_fd_1, (struct sockaddr*)&address_1, (socklen_t *)&address_len_1) == -1){
+    conn_fd_1 = accept(sock_fd_1, (struct sockaddr*)&address_1, (socklen_t *)&address_len_1);
+    if(conn_fd_1 == -1){
         perror("[Server] accept() failed.");
         exit(EXIT_FAILURE);
     }
@@ -244,7 +246,8 @@ int main(){
     int sock_fd_2, conn_fd_2;
     struct sockaddr_in address_2;
     int address_len_2 = sizeof(address_2);
-    if(sock_fd_1 = socket(AF_INET, SOCK_STREAM, 0) == 0){
+    sock_fd_2 = socket(AF_INET, SOCK_STREAM, 0);
+    if(sock_fd_2 == -1){
         perror("Socket failure.");
     }
     exit(EXIT_FAILURE);
@@ -260,7 +263,8 @@ int main(){
         exit(EXIT_FAILURE);
     }
     printf("[Server] running on port %d\n", PORT2);
-    if(conn_fd_2 = accept(sock_fd_2, (struct sockaddr*)&address_2, (socklen_t *)&address_len_2) == -1){
+    conn_fd_2 = accept(sock_fd_2, (struct sockaddr*)&address_2, (socklen_t *)&address_len_2);
+    if(conn_fd_2 == -1){
         perror("[Server] accept() failed.");
         exit(EXIT_FAILURE);
     }
