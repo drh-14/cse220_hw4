@@ -42,6 +42,8 @@ typedef struct {
     Piece piece4;
     Piece piece5;
     int remainingShips;
+    int guesses[100][3];
+    int numGuesses;
 } Player;
 
 void delete_board(Board board){
@@ -166,6 +168,12 @@ void build_piece(Piece piece, int pieceRotation, int pieceType, int row, int col
     }
 }
 
+bool in_bounds(int row, int col, Board board){
+    bool validRow = 0 <= row && row < board.height;
+    bool validCol = 0 <= col && col < board.width;
+    return validRow && validCol;
+}
+
 bool hitShip(int row, int col, Piece piece){
     for(int i = 0; i < 4; i++){
         if(row == piece.coordinates[i][0] && col == piece.coordinates[i][1]){
@@ -187,25 +195,39 @@ void remove_ship(Player player, Piece piece){
 int shoot(Player player, int row, int col){
     if(hitShip(row, col, player.piece1)){
         remove_ship(player, player.piece1);
+        player.remainingShips--;
         return 1;
     }
     else if(hitShip(row, col, player.piece2)){
         remove_ship(player, player.piece2);
+        player.remainingShips--;
         return 2;
     }
     else if(hitShip(row, col, player.piece3)){
         remove_ship(player, player.piece3);
+        player.remainingShips--;
         return 3;
     }
     else if(hitShip(row, col, player.piece4)){
         remove_ship(player, player.piece4);
+        player.remainingShips--;
         return 4;
     }
     else if(hitShip(row, col, player.piece5)){
         remove_ship(player, player.piece5);
+        player.remainingShips--;
         return 5;
     }
   return -1;
+}
+
+bool alreadyGuessed(int row, int col, Player player){
+    for(int i = 0; i < 100; i++){
+        if(row == player.guesses[i][1] && col == player.guesses[i][2]){
+            return true;
+        }
+    }
+    return false;
 }
 
 int main(){
@@ -281,6 +303,10 @@ int main(){
             memset(buffer, 0, BUFFER_SIZE);
             snprintf(message2, sizeof(message2), "H %d", 1);
             send(conn_fd_2, message2, strlen(message2), 0);
+            close(conn_fd_1);
+            close(conn_fd_2);
+            close(sock_fd_1);
+            close(sock_fd_2);
             return 0;
         }
         char *token = strtok(buffer, " ");
@@ -383,6 +409,8 @@ int main(){
             snprintf(message2, sizeof(message2), "H %d", 1);
             send(conn_fd_2, message2, strlen(message2), 0);
             memset(buffer, 0, BUFFER_SIZE);
+            delete_board(player1.board);
+            delete_board(player2.board);
             close(conn_fd_1);
             close(conn_fd_2);
             close(sock_fd_1);
@@ -466,6 +494,8 @@ int main(){
             snprintf(message2, sizeof(message2), "H %d", 0);
             send(conn_fd_2, message2, strlen(message2), 0);
             memset(buffer, 0, BUFFER_SIZE);
+            delete_board(player1.board);
+            delete_board(player2.board);
             close(conn_fd_1);
             close(conn_fd_2);
             close(sock_fd_1);
@@ -536,14 +566,251 @@ int main(){
         }
     }
 
-  // Free allocated memory and close server
+    // Shoot / Query / Forfeit
 
-  delete_board(player1.board);
-  delete_board(player2.board);
-  close(conn_fd_1);
-  close(conn_fd_2);
-  close(sock_fd_1);
-  close(sock_fd_2);
-  printf("%s", "[Server] shutting down.");
-  return 0;
+    player1.numGuesses = 0;
+    player2.numGuesses = 0;
+    while(1){
+        while(1){
+        int numBytes = read(sock_fd_1, buffer, BUFFER_SIZE);
+        if(numBytes <= 0){
+            continue;
+        }
+        if(buffer[0] == 'S'){
+            if(numBytes != 5){
+                send_error(conn_fd_1, INVALID_SHOOT_PACKET);
+                memset(buffer, 0, BUFFER_SIZE);
+                continue;
+            }
+            char *token = strtok(buffer, " ");
+            token++;
+            int i = 0;
+            int row, col;
+            while(token){
+                if(i == 0){
+                    row = (int)(*token);
+                }
+                if(i == 1){
+                    col = (int)(*token);
+                }
+                i++;
+                token++;
+            }
+            if(!in_bounds(row, col, player1.board)){
+                send_error(conn_fd_1, CELL_NOT_IN_BOARD);
+                memset(buffer, 0, BUFFER_SIZE);
+                continue;
+            }
+            if(alreadyGuessed(row, col, player1)){
+                send_error(conn_fd_1, CELL_ALREADY_GUESSED);
+                memset(buffer, 0, BUFFER_SIZE);
+                continue;
+            }
+            player1.guesses[player1.numGuesses][1] = row;
+            player1.guesses[player1.numGuesses][2] = col;
+            player1.numGuesses++;
+            int result = shoot(player2, row, col);
+            if(result == -1){
+                player1.guesses[player1.numGuesses][0] = 0;
+                char shotMessage[15];
+                snprintf(shotMessage, sizeof(shotMessage), "R %d %c", player2.remainingShips, 'M');
+                send(conn_fd_1, shotMessage, strlen(shotMessage), 0);
+            }
+            else{
+                player1.guesses[player1.numGuesses][0] = 1;
+                char shotMessage[15];
+                snprintf(shotMessage, sizeof(shotMessage), "R %d %c", player2.remainingShips, 'H');
+                send(conn_fd_1, shotMessage, strlen(shotMessage), 0);
+            }
+            if(player2.remainingShips == 0){
+                 char message1[15];
+                 snprintf(message1, sizeof(message1), "H %d", 1);
+                 send(conn_fd_1, message1, strlen(message1), 0);
+                 char message2[15];
+                 snprintf(message2, sizeof(message2), "H %d", 0);
+                 send(conn_fd_2, message2, strlen(message2), 0);
+                 memset(buffer, 0, BUFFER_SIZE);
+                 delete_board(player1.board);
+                 delete_board(player2.board);
+                 close(conn_fd_1);
+                 close(conn_fd_2);
+                 close(sock_fd_1);
+                 close(sock_fd_2);
+                 return 0;
+            }
+            memset(buffer, 0, BUFFER_SIZE);
+            break;
+        }
+        else if(buffer[0] == 'Q'){
+           char queryResponse[300];
+           queryResponse[0] = 'G';
+           strcat(queryResponse, ' ');
+           strcat(queryResponse, (char)(player2.remainingShips));
+           int numElements = 3 * player1.numGuesses;
+           for(int i = 0; i < player1.numGuesses; i++){
+            for(int j = 0; j < 3; j++){
+                if(3 * i + j != numElements - 1){
+                    strcat(queryResponse, ' ');
+                }
+                if(j == 0){
+                    if(player1.guesses[i][0] == 0){
+                        strcat(queryResponse, 'M');
+                    }
+                    else{
+                        strcat(queryResponse, 'H');
+                    }
+                }
+                else{
+                strcat(queryResponse, (char)player1.guesses[i][j]);
+                }
+            }
+           }
+            send(conn_fd_1, queryResponse, strlen(queryResponse), 0);
+            memset(buffer, 0, BUFFER_SIZE);
+            continue;
+        }
+        else if(buffer[0] == 'F'){
+             char message1[15];
+            snprintf(message1, sizeof(message1), "H %d", 0);
+            send(conn_fd_1, message1, strlen(message1), 0);
+            char message2[15];
+            snprintf(message2, sizeof(message2), "H %d", 1);
+            send(conn_fd_2, message2, strlen(message2), 0);
+            memset(buffer, 0, BUFFER_SIZE);
+            delete_board(player1.board);
+            delete_board(player2.board);
+            close(conn_fd_1);
+            close(conn_fd_2);
+            close(sock_fd_1);
+            close(sock_fd_2);
+            return 0;
+        }
+        else{
+            send_error(sock_fd_1, EXPECTED_SHOOT_QUERY_FORFEIT);
+            memset(buffer, 0, BUFFER_SIZE);
+            continue;
+        }
+        }
+
+        while(1){
+        int numBytes = read(sock_fd_2, buffer, BUFFER_SIZE);
+        if(numBytes <= 0){
+            continue;
+        }
+        if(buffer[0] == 'S'){
+            if(numBytes != 5){
+                send_error(conn_fd_2, INVALID_SHOOT_PACKET);
+                memset(buffer, 0, BUFFER_SIZE);
+                continue;
+            }
+            char *token = strtok(buffer, " ");
+            token++;
+            int i = 0;
+            int row, col;
+            while(token){
+                if(i == 0){
+                    row = (int)(*token);
+                }
+                if(i == 1){
+                    col = (int)(*token);
+                }
+                i++;
+                token++;
+            }
+            if(!in_bounds(row, col, player2.board)){
+                send_error(conn_fd_2, CELL_NOT_IN_BOARD);
+                memset(buffer, 0, BUFFER_SIZE);
+                continue;
+            }
+            if(alreadyGuessed(row, col, player2)){
+                send_error(conn_fd_2, CELL_ALREADY_GUESSED);
+                memset(buffer, 0, BUFFER_SIZE);
+                continue;
+            }
+            player2.guesses[player2.numGuesses][1] = row;
+            player1.guesses[player2.numGuesses][2] = col;
+            player1.numGuesses++;
+            int result = shoot(player1, row, col);
+            if(result == -1){
+                player2.guesses[player2.numGuesses][0] = 0;
+                char shotMessage[15];
+                snprintf(shotMessage, sizeof(shotMessage), "R %d %c", player1.remainingShips, 'M');
+                send(conn_fd_2, shotMessage, strlen(shotMessage), 0);
+            }
+            else{
+                player2.guesses[player2.numGuesses][0] = 1;
+                char shotMessage[15];
+                snprintf(shotMessage, sizeof(shotMessage), "R %d %c", player1.remainingShips, 'H');
+                send(conn_fd_2, shotMessage, strlen(shotMessage), 0);
+            }
+            if(player1.remainingShips == 0){
+                 char message1[15];
+                 snprintf(message1, sizeof(message1), "H %d", 0);
+                 send(conn_fd_1, message1, strlen(message1), 0);
+                 char message2[15];
+                 snprintf(message2, sizeof(message2), "H %d", 1);
+                 send(conn_fd_2, message2, strlen(message2), 0);
+                 memset(buffer, 0, BUFFER_SIZE);
+                 delete_board(player1.board);
+                 delete_board(player2.board);
+                 close(conn_fd_1);
+                 close(conn_fd_2);
+                 close(sock_fd_1);
+                 close(sock_fd_2);
+                 return 0;
+            }
+            memset(buffer, 0, BUFFER_SIZE);
+            break;
+        }
+        else if(buffer[0] == 'Q'){
+           char queryResponse[300];
+           queryResponse[0] = 'G';
+           strcat(queryResponse, ' ');
+           strcat(queryResponse, (char)(player1.remainingShips));
+           int numElements = 3 * player1.numGuesses;
+           for(int i = 0; i < player1.numGuesses; i++){
+            for(int j = 0; j < 3; j++){
+                if(3 * i + j != numElements - 1){
+                    strcat(queryResponse, ' ');
+                }
+                if(j == 0){
+                    if(player2.guesses[i][0] == 0){
+                        strcat(queryResponse, 'M');
+                    }
+                    else{
+                        strcat(queryResponse, 'H');
+                    }
+                }
+                else{
+                strcat(queryResponse, (char)player2.guesses[i][j]);
+                }
+            }
+           }
+            send(conn_fd_2, queryResponse, strlen(queryResponse), 0);
+            memset(buffer, 0, BUFFER_SIZE);
+            continue;
+        }
+        else if(buffer[0] == 'F'){
+             char message1[15];
+            snprintf(message1, sizeof(message1), "H %d", 1);
+            send(conn_fd_1, message1, strlen(message1), 0);
+            char message2[15];
+            snprintf(message2, sizeof(message2), "H %d", 0);
+            send(conn_fd_2, message2, strlen(message2), 0);
+            memset(buffer, 0, BUFFER_SIZE);
+            delete_board(player1.board);
+            delete_board(player2.board);
+            close(conn_fd_1);
+            close(conn_fd_2);
+            close(sock_fd_1);
+            close(sock_fd_2);
+            return 0;
+        }
+        else{
+            send_error(sock_fd_2, EXPECTED_SHOOT_QUERY_FORFEIT);
+            memset(buffer, 0, BUFFER_SIZE);
+            continue;
+        }
+        }
+    }
 }
