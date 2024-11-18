@@ -219,27 +219,13 @@ int main(){
     int address_len_1 = sizeof(address_1);
     char buffer[BUFFER_SIZE] = {0};
     sock_fd_1 = socket(AF_INET, SOCK_STREAM, 0);
-    if(sock_fd_1 == -1){
-        perror("Socket failure.");
-    }
-    exit(EXIT_FAILURE);
     address_1.sin_family = AF_INET;
     address_1.sin_port = htons(PORT1);
     address_1.sin_addr.s_addr = INADDR_ANY;
-    if(bind(sock_fd_1, (struct sockaddr*)&address_1, sizeof(address_1)) < 0){
-        perror("[Server] bind() failed.");
-        exit(EXIT_FAILURE);
-    }
-    if(listen(sock_fd_1, 3) == -1){
-        perror("[Server] listen() failed.");
-        exit(EXIT_FAILURE);
-    }
+    bind(sock_fd_1, (struct sockaddr*)&address_1, sizeof(address_1));
+    listen(sock_fd_1, 3);
     printf("[Server] running on port %d\n", PORT1);
     conn_fd_1 = accept(sock_fd_1, (struct sockaddr*)&address_1, (socklen_t *)&address_len_1);
-    if(conn_fd_1 == -1){
-        perror("[Server] accept() failed.");
-        exit(EXIT_FAILURE);
-    }
 
     // Socket for Port 2
 
@@ -247,28 +233,13 @@ int main(){
     struct sockaddr_in address_2;
     int address_len_2 = sizeof(address_2);
     sock_fd_2 = socket(AF_INET, SOCK_STREAM, 0);
-    if(sock_fd_2 == -1){
-        perror("Socket failure.");
-    }
-    exit(EXIT_FAILURE);
     address_2.sin_family = AF_INET;
     address_2.sin_port = htons(PORT2);
     address_2.sin_addr.s_addr = INADDR_ANY;
-    if(bind(sock_fd_2, (struct sockaddr*)&address_2, sizeof(address_2)) < 0){
-        perror("[Server] bind() failed.");
-        exit(EXIT_FAILURE);
-    }
-    if(listen(sock_fd_2, 3) == -1){
-        perror("[Server] listen() failed.");
-        exit(EXIT_FAILURE);
-    }
+    bind(sock_fd_2, (struct sockaddr*)&address_2, sizeof(address_2));
+    listen(sock_fd_2, 3);
     printf("[Server] running on port %d\n", PORT2);
     conn_fd_2 = accept(sock_fd_2, (struct sockaddr*)&address_2, (socklen_t *)&address_len_2);
-    if(conn_fd_2 == -1){
-        perror("[Server] accept() failed.");
-        exit(EXIT_FAILURE);
-    }
-    
 
     // Begin packets
 
