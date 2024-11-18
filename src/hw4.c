@@ -281,6 +281,8 @@ int main(){
             memset(buffer, 0, BUFFER_SIZE);
             close(sock_fd_1);
             close(sock_fd_2);
+            close(conn_fd_1);
+            close(conn_fd_2);
             return 0;
         }
         char *token = strtok(buffer, " ");
