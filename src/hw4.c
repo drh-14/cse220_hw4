@@ -6,7 +6,6 @@
 #include <arpa/inet.h>
 #include <sys/socket.h>
 
-#define PORT 8000
 #define PORT1 2201
 #define PORT2 2202
 #define BUFFER_SIZE 1024
@@ -53,7 +52,7 @@ void delete_board(Board board){
 }
 
 int send_error(int target_fd, int ERROR_CODE){
-    char message[10];
+    char message[20];
     snprintf(message, sizeof(message), "Error %d\n", ERROR_CODE);
     return send(target_fd, message, strlen(message), 0);
 }
@@ -213,43 +212,60 @@ int main(){
 
     //Server Setup
     
-    int listen_fd, conn_fd_1, conn_fd_2;
-    struct sockaddr_in address;
-    int addrlen = sizeof(address);
+    // Socket for Port 1
+ 
+    int sock_fd_1, conn_fd_1;
+    struct sockaddr_in address_1;
+    int address_len_1 = sizeof(address_1);
     char buffer[BUFFER_SIZE] = {0};
-    if(listen_fd = socket(AF_INET, SOCK_STREAM, 0) == 0){
+    if(sock_fd_1 = socket(AF_INET, SOCK_STREAM, 0) == 0){
         perror("Socket failure.");
-        exit(EXIT_FAILURE);
     }
-
-    //Bind socket to port
-    address.sin_family = AF_INET;
-    address.sin_port = htons(PORT);
-    address.sin_addr.s_addr = INADDR_ANY;
-    if(bind(listen_fd, (struct sockaddr*)&address, sizeof(address)) < 0){
+    exit(EXIT_FAILURE);
+    address_1.sin_family = AF_INET;
+    address_1.sin_port = htons(PORT1);
+    address_1.sin_addr.s_addr = INADDR_ANY;
+    if(bind(sock_fd_1, (struct sockaddr*)&address_1, sizeof(address_1)) < 0){
         perror("[Server] bind() failed.");
         exit(EXIT_FAILURE);
     }
-
-    // Listen for connections
-    if(listen(listen_fd, 3) == -1){
+    if(listen(sock_fd_1, 3) == -1){
         perror("[Server] listen() failed.");
         exit(EXIT_FAILURE);
     }
+    printf("[Server] running on port %d\n", PORT1);
+    if(conn_fd_1 = accept(sock_fd_1, (struct sockaddr*)&address_1, (socklen_t *)&address_len_1) == -1){
+        perror("[Server] accept() failed.");
+        exit(EXIT_FAILURE);
+    }
 
-    printf("[Server] running on port %d\n", PORT);
-    
-    // Accept incoming connections
+    // Socket for Port 2
 
-    if(conn_fd_1 = accept(listen_fd, (struct sockaddr*)&address, (socklen_t *)&addrlen) == -1){
+    int sock_fd_2, conn_fd_2;
+    struct sockaddr_in address_2;
+    int address_len_2 = sizeof(address_2);
+    char buffer[BUFFER_SIZE] = {0};
+    if(sock_fd_1 = socket(AF_INET, SOCK_STREAM, 0) == 0){
+        perror("Socket failure.");
+    }
+    exit(EXIT_FAILURE);
+    address_2.sin_family = AF_INET;
+    address_2.sin_port = htons(PORT2);
+    address_2.sin_addr.s_addr = INADDR_ANY;
+    if(bind(sock_fd_2, (struct sockaddr*)&address_2, sizeof(address_2)) < 0){
+        perror("[Server] bind() failed.");
+        exit(EXIT_FAILURE);
+    }
+    if(listen(sock_fd_2, 3) == -1){
+        perror("[Server] listen() failed.");
+        exit(EXIT_FAILURE);
+    }
+    printf("[Server] running on port %d\n", PORT2);
+    if(conn_fd_2 = accept(sock_fd_2, (struct sockaddr*)&address_2, (socklen_t *)&address_len_2) == -1){
         perror("[Server] accept() failed.");
         exit(EXIT_FAILURE);
     }
     
-    if(conn_fd_2 = accept(listen_fd, (struct sockaddr*)&address, &addrlen) == -1){
-        perror("[Server] accept() failed.");
-        exit(EXIT_FAILURE);
-    }
 
     // Begin packets
 
@@ -359,7 +375,7 @@ int main(){
                 memset(buffer, 0, BUFFER_SIZE);
                 break;
             }
-            if(!(1 <= pieceRotation && pieceRotation <= 7)){
+            if(!(1 <= pieceRotation && pieceRotation <= 4)){
                 send_error(conn_fd_1, ROTATION_OUT_OF_RANGE);
                 memset(buffer, 0, BUFFER_SIZE);
                 break;
@@ -480,7 +496,8 @@ int main(){
 
   delete_board(player1.board);
   delete_board(player2.board);
-  close(listen_fd);
+  close(sock_fd_1);
+  close(sock_fd_2);
   printf("%s", "[Server] shutting down.");
   return 0;
 }
