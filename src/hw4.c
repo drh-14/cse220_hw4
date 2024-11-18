@@ -283,19 +283,28 @@ int main(){
             close(sock_fd_2);
             return 0;
         }
-        char *tokens = strtok(buffer, " ");
-        if(*tokens != 'B'){
+        char *token = strtok(buffer, " ");
+        if(*token != 'B'){
             send_error(conn_fd_1, EXPECTED_BEGIN_PACKET);
             memset(buffer, 0, BUFFER_SIZE);
             continue;
         }
-        if(strlen(tokens) != 3){
+        int i = 0;
+        while(buffer){
+            if(i == 1){
+                width = (int)*token;
+            }
+            if(i == 2){
+                height = (int)*token;
+            }
+            token++;
+            i++;
+        }
+        if(i != 3){
             send_error(conn_fd_1, INVALID_BEGIN_PACKET);
             memset(buffer, 0, BUFFER_SIZE);
             continue;
         }
-        width = (int)tokens[1];
-        height = (int)tokens[2];
         if(width < 10 || height < 10){
             send_error(conn_fd_1, INVALID_BEGIN_PACKET);
             memset(buffer, 0,  BUFFER_SIZE);
